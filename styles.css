@@ -1589,3 +1589,276 @@ body.is-tablet .vc-inspector {
 	max-height: none;
 	z-index: 40;
 }
+
+/* ---------- Topbar Review Button & Goal ACT Row ---------- */
+
+.vc-root button.vc-topbar-review {
+	position: absolute;
+	right: 16px;
+}
+
+.vc-goal-act-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding-top: 2px;
+}
+
+/* ---------- Velocity Level 3 Modals (Questionnaire & Review) ---------- */
+
+.modal.vc-modal {
+	width: min(640px, calc(100vw - 24px));
+	max-width: 640px;
+	padding: 0;
+	border-radius: var(--menu-radius, var(--radius-ml, 14px));
+	-electron-corner-smoothing: var(--corner-smoothing, 60%);
+	background: var(
+		--modal-small-background,
+		var(--background-primary-alt, var(--background-secondary))
+	);
+	backdrop-filter: var(--blur-m, blur(12px));
+	-webkit-backdrop-filter: var(--blur-m, blur(12px));
+	border: 1px solid
+		var(--menu-border-color, var(--trans-faint-30, var(--background-modifier-border)));
+	box-shadow:
+		var(--glass-base-l, none),
+		var(--menu-shadow, 0 12px 32px rgba(0, 0, 0, 0.3));
+	overflow: hidden;
+}
+
+.modal.vc-modal .modal-content {
+	margin: 0;
+	padding: 0;
+}
+
+.modal.vc-modal .vc-modal-root {
+	background: transparent;
+	height: auto;
+	max-height: min(82vh, 720px);
+	display: flex;
+	flex-direction: column;
+}
+
+.vc-modal-head {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 18px 20px 14px;
+	border-bottom: 1px solid var(--trans-faint-20, var(--background-modifier-border));
+	flex-shrink: 0;
+}
+
+.vc-modal-title {
+	margin: 0;
+	padding-right: 28px;
+	font-size: 1.08rem;
+	font-weight: var(--font-semibold, 600);
+	font-variation-settings: "opsz" 24;
+	color: var(--color-base-100, var(--text-normal));
+}
+
+.vc-modal-subtitle {
+	font-size: 0.84rem;
+	line-height: 1.45;
+	color: var(--icon-color, var(--text-muted));
+}
+
+.vc-modal-seg {
+	align-self: flex-start;
+	max-width: 100%;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.vc-modal-seg::-webkit-scrollbar {
+	display: none;
+}
+
+.vc-modal-scroll {
+	flex: 1 1 auto;
+	overflow-y: auto;
+	scrollbar-width: none;
+	padding: 16px 20px 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.vc-modal-scroll::-webkit-scrollbar {
+	display: none;
+}
+
+.vc-modal-footer {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+	padding: 12px 20px calc(14px + var(--safe-area-inset-bottom, 0px));
+	border-top: 1px solid var(--trans-faint-20, var(--background-modifier-border));
+	flex-shrink: 0;
+}
+
+.vc-q-block {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 0 2px;
+}
+
+.vc-q-label {
+	font-size: 0.85rem;
+	font-weight: var(--font-semi-medium, 500);
+	color: var(--text-normal);
+	line-height: 1.4;
+}
+
+.vc-review-ctx {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 10px;
+}
+
+.vc-review-ctx-title {
+	font-size: 0.85rem;
+	font-weight: var(--font-semi-medium, 500);
+	color: var(--text-normal);
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* ---------- FEAR Grid ---------- */
+
+.vc-fear-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+}
+
+.vc-fear-card {
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	cursor: pointer;
+	transition:
+		background var(--anim-super-smooth, 75ms ease-out),
+		box-shadow var(--anim-duration-fast, 150ms) var(--vl-ease-out, cubic-bezier(0.3, 0.75, 0, 1));
+}
+
+.vc-fear-card:hover {
+	background: var(--trans-faint-10, var(--background-modifier-hover));
+}
+
+.vc-fear-card.is-active {
+	box-shadow:
+		0 0 0 1.5px var(--interactive-accent),
+		var(--shadow-input, none);
+}
+
+.vc-fear-card-top {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.vc-fear-letter {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border-radius: var(--radius-xs, 6px);
+	background: color-mix(in oklab, var(--interactive-accent) 16%, transparent);
+	color: var(--color-accent-1, var(--text-accent));
+	font-size: 0.78rem;
+	font-weight: var(--font-bold, 700);
+	flex-shrink: 0;
+}
+
+.vc-fear-name {
+	font-size: 0.86rem;
+	font-weight: var(--font-semibold, 600);
+	color: var(--color-base-100, var(--text-normal));
+}
+
+.vc-fear-short {
+	font-size: 0.78rem;
+	line-height: 1.35;
+	color: var(--icon-color, var(--text-muted));
+}
+
+.vc-fear-detail {
+	padding: 14px 16px;
+	gap: 10px;
+}
+
+/* ---------- Rehearsal Timer ---------- */
+
+.vc-rehearsal-box {
+	align-items: center;
+	text-align: center;
+	padding: 20px;
+	gap: 16px;
+}
+
+.vc-rehearsal-guide {
+	max-width: 440px;
+	font-size: 0.88rem;
+	line-height: 1.5;
+	color: var(--icon-color, var(--text-muted));
+}
+
+.vc-center-row {
+	justify-content: center;
+}
+
+.vc-timer-display {
+	font-size: 2.6rem;
+	font-weight: var(--font-bold, 700);
+	font-variation-settings: "opsz" 28;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: -0.02em;
+	color: var(--color-base-100, var(--text-normal));
+	line-height: 1;
+}
+
+.vc-timer-track {
+	width: 100%;
+	max-width: 320px;
+	flex: none;
+}
+
+.vc-timer-controls {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+/* ---------- Clarify Cards ---------- */
+
+.vc-clarify-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.vc-clarify-card {
+	padding: 12px 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+@media (max-width: 600px) {
+	.vc-fear-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+body.is-mobile .modal.vc-modal .vc-modal-root,
+body.is-tablet .modal.vc-modal .vc-modal-root {
+	max-height: 85vh;
+}

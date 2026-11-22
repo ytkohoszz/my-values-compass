@@ -4,6 +4,8 @@ import {
 	DOMAIN_PROMPTS,
 	HORIZON_LIST,
 } from "../defaults";
+import { QuestionnaireModal } from "../modals/questionnaireModal";
+import { ReviewModal } from "../modals/reviewModal";
 import { GoalHorizon, ValueDomain, ValueGoal } from "../types";
 import type { ValuesCompassView } from "../view";
 
@@ -187,14 +189,13 @@ function renderDomainInspector(
 
 	const prompts = DOMAIN_PROMPTS[domain.id] ?? [];
 	if (prompts.length > 0) {
-		const promptToggle = compHead.createEl("button", {
+		const qBtn = compHead.createEl("button", {
 			cls: "vc-btn vc-btn-subtle",
-			text: view.uiState.showPrompts ? "Скрыть вопросы" : "Вопросы из книги",
+			text: "Пройти опросник",
 			attr: { type: "button" },
 		});
-		promptToggle.addEventListener("click", () => {
-			view.uiState.showPrompts = !view.uiState.showPrompts;
-			view.render();
+		qBtn.addEventListener("click", () => {
+			new QuestionnaireModal(view.app, store, domain).open();
 		});
 	}
 
@@ -628,6 +629,32 @@ function renderGoalCard(
 				});
 			}
 		}
+	});
+
+	// Инструменты ACT для цели
+	const actRow = details.createDiv({ cls: "vc-goal-act-row" });
+	const unpackBtn = actRow.createEl("button", {
+		cls: "vc-btn vc-chip",
+		text: "Распаковать",
+		attr: { type: "button", title: "Найти корневую ценность и шаг на сегодня" },
+	});
+	unpackBtn.addEventListener("click", () => {
+		new ReviewModal(view.app, store, {
+			initialTab: "unpack",
+			goal,
+		}).open();
+	});
+
+	const stuckBtn = actRow.createEl("button", {
+		cls: "vc-btn vc-chip",
+		text: "Застрял?",
+		attr: { type: "button", title: "Диагностика FEAR и репетиция" },
+	});
+	stuckBtn.addEventListener("click", () => {
+		new ReviewModal(view.app, store, {
+			initialTab: "fear",
+			goal,
+		}).open();
 	});
 
 	// Нижняя панель управления целью
