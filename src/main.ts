@@ -4,6 +4,7 @@ import { ValuesCompassSettingTab } from "./settings";
 import { ValuesStore } from "./store";
 import { ValuesCompassSettings } from "./types";
 import { ValuesCompassView } from "./view";
+import { ValuesCompassWidget } from "./widget";
 
 export default class ValuesCompassPlugin extends Plugin {
 	public settings: ValuesCompassSettings = { ...DEFAULT_SETTINGS };
@@ -38,6 +39,13 @@ export default class ValuesCompassPlugin extends Plugin {
 				void this.activateView("today", true);
 			},
 		});
+
+		this.registerMarkdownCodeBlockProcessor(
+			"values-compass",
+			(source, el, ctx) => {
+				ctx.addChild(new ValuesCompassWidget(el, this, source));
+			}
+		);
 
 		this.addSettingTab(new ValuesCompassSettingTab(this.app, this));
 

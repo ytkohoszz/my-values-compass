@@ -1862,3 +1862,121 @@ body.is-mobile .modal.vc-modal .vc-modal-root,
 body.is-tablet .modal.vc-modal .vc-modal-root {
 	max-height: 85vh;
 }
+
+/* ---------- Embeddable Codeblock Widget (Dashboard Island) ---------- */
+
+.vc-root.vc-widget {
+	height: auto;
+	background: transparent;
+}
+
+.vc-widget-island {
+	gap: 12px;
+	padding: 14px 16px;
+}
+
+.vc-widget-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.vc-widget-title {
+	font-size: 0.96rem;
+	font-weight: var(--font-semibold, 600);
+	font-variation-settings: "opsz" 24;
+	color: var(--color-base-100, var(--text-normal));
+}
+
+.vc-widget-head-right {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.vc-widget-focus-strip {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.vc-widget-focus-item {
+	padding: 10px 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	box-shadow:
+		inset 2.5px 0 0 0 color-mix(in oklab, var(--interactive-accent) 85%, transparent),
+		var(--shadow-input, 0 0 0 0.5px var(--trans-faint-20, var(--background-modifier-border)));
+}
+
+.vc-widget-focus-top {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+}
+
+.vc-widget-focus-name {
+	font-size: 0.86rem;
+	font-weight: var(--font-semibold, 600);
+	color: var(--color-base-100, var(--text-normal));
+}
+
+.vc-widget-focus-summary {
+	font-size: 0.82rem;
+	line-height: 1.4;
+	color: var(--icon-color, var(--text-muted));
+}
+
+.vc-widget-chips {
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	scrollbar-width: none;
+	padding-bottom: 2px;
+}
+
+.vc-widget-chips::-webkit-scrollbar {
+	display: none;
+}
+
+.vc-widget-chips .vc-chip {
+	flex-shrink: 0;
+}
+
+.vc-widget-pulse-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	padding-top: 4px;
+	border-top: 1px solid var(--trans-faint-20, var(--background-modifier-border));
+}
+
+.vc-widget-pulse-cells {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.vc-widget-kpi-row {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 8px;
+}
+
+.vc-widget-kpi-tile {
+	padding: 10px 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.vc-widget-kpi-val {
+	font-size: 1.25rem;
+	font-weight: var(--font-bold, 700);
+	font-variation-settings: "opsz" 24;
+	font-variant-numeric: tabular-nums;
+	color: var(--color-base-100, var(--text-normal));
+	line-height: 1.15;
+}
