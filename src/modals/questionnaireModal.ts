@@ -1,5 +1,5 @@
 import { App, Modal, Notice } from "obsidian";
-import { DOMAIN_PROMPTS } from "../defaults";
+import { getDomainPrompts } from "../defaults";
 import { ValuesStore } from "../store";
 import { ValueDomain } from "../types";
 
@@ -34,7 +34,7 @@ export class QuestionnaireModal extends Modal {
 		});
 
 		const scroll = root.createDiv({ cls: "vc-modal-scroll" });
-		const prompts = DOMAIN_PROMPTS[this.domain.id] ?? [];
+		const prompts = getDomainPrompts(this.domain.id);
 
 		prompts.forEach((question, idx) => {
 			const key = `q_${idx}`;

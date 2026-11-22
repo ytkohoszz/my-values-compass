@@ -97,6 +97,39 @@ export const DOMAIN_PROMPTS: Record<string, string[]> = {
 	],
 };
 
+export const UNIVERSAL_DOMAIN_PROMPTS: string[] = [
+	"Каким человеком я хочу быть в этой сфере жизни?",
+	"Какие личные качества я хочу привносить сюда на постоянной основе?",
+	"Какие регулярные действия и ритуалы сделают эту сферу по-настоящему осмысленной?",
+	"Что в этой сфере полностью зависит от моих собственных поступков?",
+];
+
+export function getDomainPrompts(domainId: string): string[] {
+	const specific = DOMAIN_PROMPTS[domainId];
+	return specific && specific.length > 0 ? specific : UNIVERSAL_DOMAIN_PROMPTS;
+}
+
+export const DOMAIN_ICON_OPTIONS: string[] = [
+	"compass",
+	"palette",
+	"activity",
+	"graduation-cap",
+	"users",
+	"heart",
+	"message-circle",
+	"sparkles",
+	"brain",
+	"music",
+	"briefcase",
+	"book-open",
+	"flame",
+	"target",
+	"sun",
+	"shield",
+	"trees",
+	"globe",
+];
+
 export function createDefaultDomains(nowIso: string): ValueDomain[] {
 	const raw: Array<{ id: string; name: string; icon: string }> = [
 		{ id: "family", name: "Семья", icon: "users" },

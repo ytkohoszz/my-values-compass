@@ -1,7 +1,8 @@
 import { Notice, setIcon } from "obsidian";
 import {
 	checkDeadPersonGoal,
-	DOMAIN_PROMPTS,
+	DOMAIN_ICON_OPTIONS,
+	getDomainPrompts,
 	HORIZON_LIST,
 } from "../defaults";
 import { QuestionnaireModal } from "../modals/questionnaireModal";
@@ -28,11 +29,28 @@ export function renderMapTab(container: HTMLElement, view: ValuesCompassView): v
 	const gridHead = gridCol.createDiv({ cls: "vc-section-head vc-map-head" });
 	gridHead.createEl("h2", { cls: "vc-section-title", text: "Карта жизненных сфер" });
 
+	const headRight = gridHead.createDiv({ cls: "vc-map-head-right" });
 	const focusCount = store.getFocusDomains().length;
-	gridHead.createSpan({
+	headRight.createSpan({
 		cls: "vc-muted-meta",
 		text: `В фокусе: ${focusCount}`,
 	});
+
+	const addDomainBtn = headRight.createEl("button", {
+		cls: `vc-btn vc-btn-normal${view.uiState.isAddingDomain ? " is-active" : ""}`,
+		attr: { type: "button" },
+	});
+	const addIco = addDomainBtn.createSpan({ cls: "vc-chip-icon" });
+	setIcon(addIco, "plus");
+	addDomainBtn.createSpan({ text: "Сфера" });
+	addDomainBtn.addEventListener("click", () => {
+		view.uiState.isAddingDomain = !view.uiState.isAddingDomain;
+		view.render();
+	});
+
+	if (view.uiState.isAddingDomain) {
+		renderAddDomainCard(gridCol, view);
+	}
 
 	const grid = gridCol.createDiv({ cls: "vc-domains-grid" });
 
@@ -58,6 +76,8 @@ export function renderMapTab(container: HTMLElement, view: ValuesCompassView): v
 		card.addEventListener("click", () => {
 			view.uiState.selectedMapDomainId = isSelected ? null : domain.id;
 			view.uiState.addingGoalHorizon = null;
+			view.uiState.editingDomainId = null;
+			view.uiState.confirmDeleteDomainId = null;
 			view.uiState.showPrompts = false;
 			view.render();
 		});
@@ -150,6 +170,17 @@ function renderDomainInspector(
 		void store.toggleDomainFocus(domain.id);
 	});
 
+	const isEditing = view.uiState.editingDomainId === domain.id;
+	const editBtn = headActions.createEl("button", {
+		cls: `vc-btn vc-btn-icon${isEditing ? " is-active" : ""}`,
+		attr: { type: "button", title: "Переименовать сферу и выбрать иконку" },
+	});
+	setIcon(editBtn, "pencil");
+	editBtn.addEventListener("click", () => {
+		view.uiState.editingDomainId = isEditing ? null : domain.id;
+		view.render();
+	});
+
 	const hideBtn = headActions.createEl("button", {
 		cls: "vc-btn vc-btn-icon",
 		attr: {
@@ -177,17 +208,76 @@ function renderDomainInspector(
 	setIcon(closeBtn, "x");
 	closeBtn.addEventListener("click", () => {
 		view.uiState.selectedMapDomainId = null;
+		view.uiState.editingDomainId = null;
+		view.uiState.confirmDeleteDomainId = null;
 		view.render();
 	});
 
 	const body = inspector.createDiv({ cls: "vc-inspector-body" });
+
+	// Панель переименования и выбора иконки
+	if (isEditing) {
+		const editBox = body.createDiv({ cls: "vc-subcard vc-edit-domain-box" });
+		editBox.createDiv({ cls: "vc-detail-label", text: "Название и иконка" });
+
+		const nameRow = editBox.createDiv({ cls: "vc-quick-form" });
+		const nameInput = nameRow.createEl("input", {
+			cls: "vc-input",
+			attr: { type: "text", placeholder: "Название сферы" },
+		});
+		nameInput.value = domain.name;
+
+		const saveNameBtn = nameRow.createEl("button", {
+			cls: "vc-btn vc-btn-cta",
+			text: "Готово",
+			attr: { type: "button" },
+		});
+
+		const commitName = async () => {
+			const next = nameInput.value.trim();
+			if (next && next !== domain.name) {
+				await store.updateDomain(domain.id, { name: next });
+			}
+			view.uiState.editingDomainId = null;
+			view.render();
+		};
+
+		saveNameBtn.addEventListener("click", () => {
+			void commitName();
+		});
+		nameInput.addEventListener("keydown", (e) => {
+			if (e.key === "Enter") {
+				e.preventDefault();
+				void commitName();
+			} else if (e.key === "Escape") {
+				view.uiState.editingDomainId = null;
+				view.render();
+			}
+		});
+
+		const iconGrid = editBox.createDiv({ cls: "vc-icon-grid" });
+		for (const iconName of DOMAIN_ICON_OPTIONS) {
+			const iBtn = iconGrid.createEl("button", {
+				cls: `vc-btn vc-btn-icon vc-icon-pick-btn${
+					domain.icon === iconName ? " is-active" : ""
+				}`,
+				attr: { type: "button", title: iconName },
+			});
+			setIcon(iBtn, iconName);
+			iBtn.addEventListener("click", () => {
+				void store.updateDomain(domain.id, { icon: iconName });
+			});
+		}
+
+		window.setTimeout(() => nameInput.focus(), 20);
+	}
 
 	// Секция 1: Компас сферы
 	const compassSec = body.createDiv({ cls: "vc-insp-section" });
 	const compHead = compassSec.createDiv({ cls: "vc-insp-sec-head" });
 	compHead.createEl("h3", { cls: "vc-insp-sec-title", text: "Компас" });
 
-	const prompts = DOMAIN_PROMPTS[domain.id] ?? [];
+	const prompts = getDomainPrompts(domain.id);
 	if (prompts.length > 0) {
 		const qBtn = compHead.createEl("button", {
 			cls: "vc-btn vc-btn-subtle",
@@ -378,6 +468,137 @@ function renderDomainInspector(
 			}
 		}
 	}
+
+	// Секция 4: Удаление сферы (двухшаговое подтверждение)
+	body.createEl("hr", { cls: "vc-hr" });
+	const dangerSec = body.createDiv({ cls: "vc-danger-zone" });
+
+	if (view.uiState.confirmDeleteDomainId !== domain.id) {
+		const delTrigger = dangerSec.createEl("button", {
+			cls: "vc-btn vc-btn-subtle vc-danger-text",
+			text: "Удалить сферу навсегда",
+			attr: { type: "button" },
+		});
+		delTrigger.addEventListener("click", () => {
+			view.uiState.confirmDeleteDomainId = domain.id;
+			view.render();
+		});
+	} else {
+		const usage = store.getDomainUsage(domain.id);
+		const detailsText =
+			usage.goalsCount > 0 || usage.logsCount > 0
+				? `Удалить «${domain.name}» вместе с целями (${usage.goalsCount}) и записями (${usage.logsCount})?`
+				: `Удалить сферу «${domain.name}»?`;
+
+		dangerSec.createDiv({ cls: "vc-confirm-text", text: detailsText });
+		const confirmRow = dangerSec.createDiv({ cls: "vc-confirm-row" });
+
+		const cancelDel = confirmRow.createEl("button", {
+			cls: "vc-btn vc-btn-normal",
+			text: "Отмена",
+			attr: { type: "button" },
+		});
+		cancelDel.addEventListener("click", () => {
+			view.uiState.confirmDeleteDomainId = null;
+			view.render();
+		});
+
+		const confirmDel = confirmRow.createEl("button", {
+			cls: "vc-btn vc-btn-danger",
+			text: "Да, удалить",
+			attr: { type: "button" },
+		});
+		confirmDel.addEventListener("click", async () => {
+			const deletedName = domain.name;
+			view.uiState.selectedMapDomainId = null;
+			view.uiState.editingDomainId = null;
+			view.uiState.confirmDeleteDomainId = null;
+			if (view.uiState.analyticsDomainFilter === domain.id) {
+				view.uiState.analyticsDomainFilter = "all";
+			}
+			await store.deleteDomain(domain.id);
+			new Notice(`Сфера «${deletedName}» удалена`);
+		});
+	}
+}
+
+function renderAddDomainCard(
+	parent: HTMLElement,
+	view: ValuesCompassView
+): void {
+	const store = view.plugin.store;
+	const card = parent.createDiv({ cls: "vc-island vc-add-domain-card" });
+	card.createDiv({ cls: "vc-detail-label", text: "Новая жизненная сфера" });
+
+	const nameInput = card.createEl("input", {
+		cls: "vc-input",
+		attr: { type: "text", placeholder: "Например: Творчество, Осознанность..." },
+	});
+
+	const iconGrid = card.createDiv({ cls: "vc-icon-grid" });
+	for (const iconName of DOMAIN_ICON_OPTIONS) {
+		const iBtn = iconGrid.createEl("button", {
+			cls: `vc-btn vc-btn-icon vc-icon-pick-btn${
+				view.uiState.newDomainIcon === iconName ? " is-active" : ""
+			}`,
+			attr: { type: "button", title: iconName },
+		});
+		setIcon(iBtn, iconName);
+		iBtn.addEventListener("click", () => {
+			view.uiState.newDomainIcon = iconName;
+			iconGrid
+				.querySelectorAll(".vc-icon-pick-btn")
+				.forEach((el) => el.removeClass("is-active"));
+			iBtn.addClass("is-active");
+		});
+	}
+
+	const actions = card.createDiv({ cls: "vc-form-actions" });
+	const cancelBtn = actions.createEl("button", {
+		cls: "vc-btn vc-btn-normal",
+		text: "Отмена",
+		attr: { type: "button" },
+	});
+	cancelBtn.addEventListener("click", () => {
+		view.uiState.isAddingDomain = false;
+		view.render();
+	});
+
+	const createBtn = actions.createEl("button", {
+		cls: "vc-btn vc-btn-cta",
+		text: "Создать сферу",
+		attr: { type: "button" },
+	});
+
+	const submit = async () => {
+		const name = nameInput.value.trim();
+		if (!name) return;
+		const created = await store.addDomain({
+			name,
+			icon: view.uiState.newDomainIcon || "compass",
+		});
+		view.uiState.isAddingDomain = false;
+		view.uiState.newDomainIcon = "compass";
+		if (created) {
+			view.uiState.selectedMapDomainId = created.id;
+		}
+		view.render();
+	};
+
+	createBtn.addEventListener("click", () => {
+		void submit();
+	});
+	nameInput.addEventListener("keydown", (e) => {
+		if (e.key === "Enter") {
+			e.preventDefault();
+			void submit();
+		} else if (e.key === "Escape") {
+			view.uiState.isAddingDomain = false;
+			view.render();
+		}
+	});
+
+	window.setTimeout(() => nameInput.focus(), 20);
 }
 
 function renderAddGoalForm(

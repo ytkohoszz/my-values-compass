@@ -12,6 +12,10 @@ export interface CompassUIState {
 	selectedLogDomainId: string;
 	isNewStep: boolean;
 	selectedMapDomainId: string | null;
+	isAddingDomain: boolean;
+	newDomainIcon: string;
+	editingDomainId: string | null;
+	confirmDeleteDomainId: string | null;
 	expandedGoalIds: Set<string>;
 	addingGoalHorizon: GoalHorizon | null;
 	showDoneGoals: boolean;
@@ -34,6 +38,10 @@ export class ValuesCompassView extends ItemView {
 			selectedLogDomainId: "",
 			isNewStep: false,
 			selectedMapDomainId: null,
+			isAddingDomain: false,
+			newDomainIcon: "compass",
+			editingDomainId: null,
+			confirmDeleteDomainId: null,
 			expandedGoalIds: new Set<string>(),
 			addingGoalHorizon: null,
 			showDoneGoals: false,

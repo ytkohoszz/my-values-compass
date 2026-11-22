@@ -161,6 +161,57 @@ export class ValuesStore {
 		await this.persist();
 	}
 
+	public async addDomain(input: {
+		name: string;
+		icon?: string;
+	}): Promise<ValueDomain | null> {
+		const trimmed = input.name.trim();
+		if (!trimmed) return null;
+
+		const domain: ValueDomain = {
+			id: createId("dom"),
+			name: trimmed,
+			icon: input.icon?.trim() || "compass",
+			hidden: false,
+			isFocus: false,
+			compassSummary: "",
+			qualities: [],
+			importance: 7,
+			alignment: 5,
+			updatedAt: new Date().toISOString(),
+			questionnaireAnswers: {},
+		};
+
+		this.data.domains.push(domain);
+		this.notify();
+		await this.persist();
+		return domain;
+	}
+
+	public getDomainUsage(domainId: string): {
+		goalsCount: number;
+		logsCount: number;
+	} {
+		const goalsCount = this.data.goals.filter(
+			(g) => g.domainId === domainId
+		).length;
+		const logsCount = this.data.logs.filter(
+			(l) => l.domainId === domainId
+		).length;
+		return { goalsCount, logsCount };
+	}
+
+	public async deleteDomain(domainId: string): Promise<void> {
+		this.data.domains = this.data.domains.filter((d) => d.id !== domainId);
+		this.data.goals = this.data.goals.filter((g) => g.domainId !== domainId);
+		this.data.logs = this.data.logs.filter((l) => l.domainId !== domainId);
+		for (const snap of this.data.snapshots) {
+			delete snap.scores[domainId];
+		}
+		this.notify();
+		await this.persist();
+	}
+
 	// --- Goals ---
 
 	public getGoalsByDomain(domainId: string, horizon?: GoalHorizon): ValueGoal[] {

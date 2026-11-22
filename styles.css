@@ -1980,3 +1980,79 @@ body.is-tablet .modal.vc-modal .vc-modal-root {
 	color: var(--color-base-100, var(--text-normal));
 	line-height: 1.15;
 }
+
+/* ---------- Domain CRUD (Create / Rename / Icon Picker / Delete) ---------- */
+
+.vc-map-head-right {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.vc-add-domain-card {
+	padding: 14px 16px;
+	gap: 10px;
+}
+
+.vc-edit-domain-box {
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.vc-icon-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.vc-root button.vc-icon-pick-btn.is-active {
+	background: var(--color-accent-4, var(--background-modifier-active-hover));
+	color: var(--color-accent-1, var(--text-accent));
+	box-shadow: inset 0 0 0 1px var(--color-accent-3, var(--interactive-accent));
+}
+
+.vc-danger-zone {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: flex-start;
+}
+
+.vc-confirm-text {
+	font-size: 0.82rem;
+	line-height: 1.4;
+	color: var(--color-red, #d85b57);
+}
+
+.vc-confirm-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.vc-root button.vc-btn-danger {
+	height: 32px;
+	padding: 0 12px;
+	border-radius: var(--radius-s, 8px);
+	background: color-mix(in oklab, var(--color-red, #d85b57) 18%, transparent);
+	color: var(--color-red, #d85b57);
+	font-weight: var(--font-semibold, 600);
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
+}
+
+.vc-root button.vc-btn-danger:hover {
+	background: color-mix(in oklab, var(--color-red, #d85b57) 28%, transparent);
+}
+
+.vc-root button.vc-btn-danger:active {
+	filter: opacity(70%);
+}
+
+body.is-mobile .vc-root button.vc-btn-danger,
+body.is-tablet .vc-root button.vc-btn-danger {
+	height: 40px;
+	padding: 0 14px;
+}
