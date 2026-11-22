@@ -7,7 +7,7 @@ export function renderAnalyticsTab(
 ): void {
 	const store = view.plugin.store;
 	const summary = store.getPeriodSummary(30);
-	const heatmap = store.getHeatmap(91);
+	const heatmap = store.getHeatmap(52);
 	const domainRows = store.getDomainAnalytics(30);
 	const allLogs = store.getAllLogs();
 	const snapshots = store.getData().snapshots;
@@ -36,7 +36,15 @@ export function renderAnalyticsTab(
 	renderKpiTile(kpiGrid, String(summary.activeDays), "Активных дней");
 	renderKpiTile(kpiGrid, String(summary.touchedDomains), "Затронуто сфер");
 
-	const heatWrap = rhythmIsland.createDiv({ cls: "vc-heatmap-wrap" });
+	const heatOuter = rhythmIsland.createDiv({ cls: "vc-heatmap-outer" });
+
+	const dayLabels = heatOuter.createDiv({ cls: "vc-heatmap-days" });
+	const weekLabels = ["Пн", "", "Ср", "", "Пт", "", "Вс"];
+	for (const lbl of weekLabels) {
+		dayLabels.createSpan({ cls: "vc-heatmap-day-label", text: lbl });
+	}
+
+	const heatWrap = heatOuter.createDiv({ cls: "vc-heatmap-wrap" });
 	const heatGrid = heatWrap.createDiv({ cls: "vc-heatmap-grid" });
 
 	for (const cell of heatmap) {
@@ -53,8 +61,12 @@ export function renderAnalyticsTab(
 		}
 	}
 
+	window.requestAnimationFrame(() => {
+		heatWrap.scrollLeft = heatWrap.scrollWidth;
+	});
+
 	const heatLegend = rhythmIsland.createDiv({ cls: "vc-heatmap-legend" });
-	heatLegend.createSpan({ cls: "vc-muted-meta", text: "Последние 13 недель" });
+	heatLegend.createSpan({ cls: "vc-muted-meta", text: "Последние 52 недели" });
 	const scale = heatLegend.createDiv({ cls: "vc-legend-scale" });
 	scale.createSpan({ cls: "vc-muted-meta", text: "Меньше" });
 	for (let lvl = 0; lvl <= 4; lvl++) {

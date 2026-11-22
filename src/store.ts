@@ -371,7 +371,7 @@ export class ValuesStore {
 		await this.persist();
 	}
 
-	public getHeatmap(days = 91): HeatmapCell[] {
+	public getHeatmap(weeks = 52): HeatmapCell[] {
 		const countMap = new Map<string, { count: number; newSteps: number }>();
 		for (const log of this.data.logs) {
 			const prev = countMap.get(log.date) ?? { count: 0, newSteps: 0 };
@@ -384,16 +384,20 @@ export class ValuesStore {
 		const today = new Date();
 		today.setHours(12, 0, 0, 0);
 
-		for (let i = days - 1; i >= 0; i--) {
+		const dow = (today.getDay() + 6) % 7; // Пн = 0 ... Вс = 6
+		const totalDays = (weeks - 1) * 7 + dow + 1;
+
+		for (let i = totalDays - 1; i >= 0; i--) {
 			const dt = new Date(today);
 			dt.setDate(today.getDate() - i);
 			const key = formatLocalDateKey(dt);
 			const stat = countMap.get(key) ?? { count: 0, newSteps: 0 };
 			let level: 0 | 1 | 2 | 3 | 4 = 0;
-			if (stat.count === 1) level = 1;
+			if (stat.count === 0) level = 0;
+			else if (stat.count === 1) level = 1;
 			else if (stat.count === 2) level = 2;
 			else if (stat.count <= 4) level = 3;
-			else if (stat.count >= 5) level = 4;
+			else level = 4;
 
 			cells.push({
 				date: key,
