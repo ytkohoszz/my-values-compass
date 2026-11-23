@@ -1,5 +1,12 @@
-import { Notice, setIcon } from "obsidian";
+import { setIcon } from "obsidian";
 import type { ValuesCompassView } from "../view";
+
+function fmtScore(n: number): string {
+	const rounded = Math.round(n * 10) / 10;
+	return Number.isInteger(rounded)
+		? String(rounded)
+		: String(rounded).replace(".", ",");
+}
 
 export function renderAnalyticsTab(
 	container: HTMLElement,
@@ -10,37 +17,22 @@ export function renderAnalyticsTab(
 	const heatmap = store.getHeatmap(52);
 	const domainRows = store.getDomainAnalytics(30);
 	const allLogs = store.getAllLogs();
-	const snapshots = store.getData().snapshots;
 
-	// 1. Остров «Ритм за 90 дней» + ключевые метрики
+	// 1. Ритм действий
 	const rhythmIsland = container.createDiv({ cls: "vc-island" });
 	const rHead = rhythmIsland.createDiv({ cls: "vc-section-head" });
-	rHead.createEl("h2", { cls: "vc-section-title", text: "Ритм действий" });
-
-	const snapBtn = rHead.createEl("button", {
-		cls: "vc-btn vc-btn-normal",
-		text: "Снимок оценок",
-		attr: {
-			type: "button",
-			title: "Сохранить текущие оценки сфер, чтобы отслеживать динамику со временем",
-		},
-	});
-	snapBtn.addEventListener("click", async () => {
-		await store.takeSnapshot();
-		new Notice("Снимок оценок сфер сохранён");
-	});
+	rHead.createEl("h2", { cls: "vc-section-title", text: "Ритм" });
+	rHead.createSpan({ cls: "vc-muted-meta", text: "30 дней" });
 
 	const kpiGrid = rhythmIsland.createDiv({ cls: "vc-kpi-grid" });
-	renderKpiTile(kpiGrid, String(summary.totalLogs), "Действий за 30 дн.");
+	renderKpiTile(kpiGrid, String(summary.totalLogs), "Действий");
 	renderKpiTile(kpiGrid, String(summary.newSteps), "Новых шагов");
 	renderKpiTile(kpiGrid, String(summary.activeDays), "Активных дней");
-	renderKpiTile(kpiGrid, String(summary.touchedDomains), "Затронуто сфер");
+	renderKpiTile(kpiGrid, String(summary.touchedDomains), "Сфер");
 
 	const heatOuter = rhythmIsland.createDiv({ cls: "vc-heatmap-outer" });
-
 	const dayLabels = heatOuter.createDiv({ cls: "vc-heatmap-days" });
-	const weekLabels = ["Пн", "", "Ср", "", "Пт", "", "Вс"];
-	for (const lbl of weekLabels) {
+	for (const lbl of ["Пн", "", "Ср", "", "Пт", "", "Вс"]) {
 		dayLabels.createSpan({ cls: "vc-heatmap-day-label", text: lbl });
 	}
 
@@ -56,9 +48,7 @@ export function renderAnalyticsTab(
 				}`,
 			},
 		});
-		if (cell.newSteps > 0) {
-			sq.addClass("has-new-step");
-		}
+		if (cell.newSteps > 0) sq.addClass("has-new-step");
 	}
 
 	window.requestAnimationFrame(() => {
@@ -66,7 +56,7 @@ export function renderAnalyticsTab(
 	});
 
 	const heatLegend = rhythmIsland.createDiv({ cls: "vc-heatmap-legend" });
-	heatLegend.createSpan({ cls: "vc-muted-meta", text: "Последние 52 недели" });
+	heatLegend.createSpan({ cls: "vc-muted-meta", text: "52 недели" });
 	const scale = heatLegend.createDiv({ cls: "vc-legend-scale" });
 	scale.createSpan({ cls: "vc-muted-meta", text: "Меньше" });
 	for (let lvl = 0; lvl <= 4; lvl++) {
@@ -74,17 +64,11 @@ export function renderAnalyticsTab(
 	}
 	scale.createSpan({ cls: "vc-muted-meta", text: "Больше" });
 
-	// 2. Остров «Слова vs. Действия» (Velocity Table)
+	// 2. Баланс сфер (Важность vs объективная Реальность за 30 дней)
 	const balanceIsland = container.createDiv({ cls: "vc-island" });
 	const bHead = balanceIsland.createDiv({ cls: "vc-section-head" });
-	bHead.createEl("h2", { cls: "vc-section-title", text: "Слова и действия (30 дней)" });
-	const lastSnap = snapshots[snapshots.length - 1];
-	if (lastSnap) {
-		bHead.createSpan({
-			cls: "vc-muted-meta",
-			text: `Снимков: ${snapshots.length} (посл. ${lastSnap.date})`,
-		});
-	}
+	bHead.createEl("h2", { cls: "vc-section-title", text: "Баланс сфер" });
+	bHead.createSpan({ cls: "vc-muted-meta", text: "30 дней" });
 
 	const tableWrap = balanceIsland.createDiv({ cls: "vc-table-wrap" });
 	const table = tableWrap.createEl("table", { cls: "vc-table" });
@@ -96,8 +80,7 @@ export function renderAnalyticsTab(
 	hr.createEl("th", { cls: "is-num", text: "Реал." });
 	hr.createEl("th", { cls: "is-num", text: "Разрыв" });
 	hr.createEl("th", { cls: "is-num", text: "Шаги" });
-	hr.createEl("th", { text: "Доля действий" });
-	hr.createEl("th", { cls: "is-num", text: "Динамика" });
+	hr.createEl("th", { text: "Доля" });
 
 	const tbody = table.createEl("tbody");
 	for (const row of domainRows) {
@@ -110,13 +93,17 @@ export function renderAnalyticsTab(
 		nameTd.createSpan({ text: row.domain.name });
 
 		tr.createEl("td", { cls: "is-num", text: String(row.domain.importance) });
-		tr.createEl("td", { cls: "is-num", text: String(row.domain.alignment) });
+		tr.createEl("td", {
+			cls: "is-num",
+			text: fmtScore(row.alignment),
+			attr: { title: `Активных дней: ${row.activeDays}` },
+		});
 
 		const gapTd = tr.createEl("td", { cls: "is-num" });
 		if (row.gap > 0) {
 			gapTd.createSpan({
 				cls: row.gap >= 3 ? "vc-val-warn" : "vc-val-muted",
-				text: `−${row.gap}`,
+				text: `−${fmtScore(row.gap)}`,
 			});
 		} else {
 			gapTd.createSpan({ cls: "vc-val-ok", text: "0" });
@@ -136,31 +123,16 @@ export function renderAnalyticsTab(
 		const barFill = barTrack.createDiv({ cls: "vc-share-fill" });
 		barFill.style.width = `${row.sharePct}%`;
 		shareFlex.createSpan({ cls: "vc-share-num", text: `${row.sharePct}%` });
-
-		const deltaTd = tr.createEl("td", { cls: "is-num" });
-		if (row.alignmentDelta === null || row.alignmentDelta === 0) {
-			deltaTd.createSpan({ cls: "vc-val-muted", text: "—" });
-		} else if (row.alignmentDelta > 0) {
-			deltaTd.createSpan({
-				cls: "vc-val-ok",
-				text: `+${row.alignmentDelta}`,
-			});
-		} else {
-			deltaTd.createSpan({
-				cls: "vc-val-warn",
-				text: String(row.alignmentDelta),
-			});
-		}
 	}
 
-	// 3. Остров «Лента шагов»
+	// 3. Лента действий
 	const timelineIsland = container.createDiv({ cls: "vc-island" });
 	const tHead = timelineIsland.createDiv({ cls: "vc-section-head" });
 	tHead.createEl("h2", { cls: "vc-section-title", text: "Лента действий" });
 
 	const newOnlyBtn = tHead.createEl("button", {
 		cls: `vc-btn vc-chip${view.uiState.analyticsOnlyNewSteps ? " is-active" : ""}`,
-		text: "Только новые шаги",
+		text: "Новые шаги",
 		attr: { type: "button" },
 	});
 	newOnlyBtn.addEventListener("click", () => {
@@ -168,13 +140,12 @@ export function renderAnalyticsTab(
 		view.render();
 	});
 
-	// Фильтр по сферам
 	const filterRow = timelineIsland.createDiv({ cls: "vc-chips-row" });
 	const allChip = filterRow.createEl("button", {
 		cls: `vc-btn vc-chip${
 			view.uiState.analyticsDomainFilter === "all" ? " is-active" : ""
 		}`,
-		text: "Все сферы",
+		text: "Все",
 		attr: { type: "button" },
 	});
 	allChip.addEventListener("click", () => {
@@ -213,14 +184,10 @@ export function renderAnalyticsTab(
 
 	if (filtered.length === 0) {
 		const empty = timelineIsland.createDiv({ cls: "vc-empty-box" });
-		empty.createDiv({
-			cls: "vc-empty-text",
-			text: "Записей по выбранному фильтру пока нет.",
-		});
+		empty.createDiv({ cls: "vc-empty-text", text: "Записей пока нет." });
 		return;
 	}
 
-	// Группировка по датам
 	const grouped = new Map<string, typeof filtered>();
 	for (const item of filtered) {
 		const arr = grouped.get(item.date) ?? [];

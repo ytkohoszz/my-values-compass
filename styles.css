@@ -2056,3 +2056,27 @@ body.is-tablet .vc-root button.vc-btn-danger {
 	height: 40px;
 	padding: 0 14px;
 }
+
+/* ---------- Objective Alignment Readout ---------- */
+
+.vc-objective-box {
+	display: flex;
+	flex-direction: column;
+	gap: 7px;
+	padding-top: 10px;
+	border-top: 1px solid var(--trans-faint-20, var(--background-modifier-border));
+}
+
+.vc-objective-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	font-size: 0.83rem;
+	color: var(--icon-color, var(--text-muted));
+}
+
+.vc-objective-meta {
+	font-size: 0.74rem;
+	font-variant-numeric: tabular-nums;
+	color: var(--text-faint);
+}

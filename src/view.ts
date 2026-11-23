@@ -16,7 +16,6 @@ export interface CompassUIState {
 	expandedGoalIds: Set<string>;
 	addingGoalHorizon: GoalHorizon | null;
 	showDoneGoals: boolean;
-	showPrompts: boolean;
 	analyticsDomainFilter: string; // "all" | domainId
 	analyticsOnlyNewSteps: boolean;
 }
@@ -39,7 +38,6 @@ export class ValuesCompassView extends ItemView {
 			expandedGoalIds: new Set<string>(),
 			addingGoalHorizon: null,
 			showDoneGoals: false,
-			showPrompts: false,
 			analyticsDomainFilter: "all",
 			analyticsOnlyNewSteps: false,
 		};

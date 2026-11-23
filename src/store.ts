@@ -2,6 +2,7 @@ import { App, normalizePath } from "obsidian";
 import { createInitialData } from "./defaults";
 import {
 	ActionStep,
+	DomainAlignmentStats,
 	DomainAnalyticsRow,
 	GoalHorizon,
 	GoalStatus,
@@ -13,6 +14,9 @@ import {
 	ValueLogEntry,
 	ValuesCompassData,
 } from "./types";
+
+const ALIGNMENT_WINDOW_DAYS = 30;
+const ALIGNMENT_TARGET_POINTS = 15;
 
 type StoreListener = () => void;
 
@@ -177,7 +181,7 @@ export class ValuesStore {
 			compassSummary: "",
 			qualities: [],
 			importance: 7,
-			alignment: 5,
+			alignment: 0,
 			updatedAt: new Date().toISOString(),
 			questionnaireAnswers: {},
 		};
@@ -434,34 +438,49 @@ export class ValuesStore {
 		await this.persist();
 	}
 
-	// --- Snapshots & Analytics ---
+	// --- Objective Alignment & Analytics ---
 
-	public async takeSnapshot(): Promise<void> {
-		const today = formatLocalDateKey();
-		const scores: Record<string, { importance: number; alignment: number }> = {};
-		for (const d of this.data.domains) {
-			if (!d.hidden) {
-				scores[d.id] = {
-					importance: d.importance,
-					alignment: d.alignment,
-				};
-			}
+	public getDomainAlignment(
+		domainId: string,
+		days = ALIGNMENT_WINDOW_DAYS
+	): DomainAlignmentStats {
+		const cutoff = new Date();
+		cutoff.setHours(12, 0, 0, 0);
+		cutoff.setDate(cutoff.getDate() - (days - 1));
+		const cutoffKey = formatLocalDateKey(cutoff);
+
+		const byDay = new Map<string, { count: number; newSteps: number }>();
+		let totalLogs = 0;
+		let newSteps = 0;
+
+		for (const log of this.data.logs) {
+			if (log.domainId !== domainId || log.date < cutoffKey) continue;
+			totalLogs += 1;
+			if (log.isNewStep) newSteps += 1;
+
+			const prev = byDay.get(log.date) ?? { count: 0, newSteps: 0 };
+			prev.count += 1;
+			if (log.isNewStep) prev.newSteps += 1;
+			byDay.set(log.date, prev);
 		}
 
-		const existing = this.data.snapshots.find((s) => s.date === today);
-		if (existing) {
-			existing.scores = scores;
-		} else {
-			this.data.snapshots.push({
-				id: createId("snap"),
-				date: today,
-				scores,
-			});
-			this.data.snapshots.sort((a, b) => a.date.localeCompare(b.date));
+		let points = 0;
+		for (const day of byDay.values()) {
+			const extraLogsBonus = Math.min(0.5, Math.max(0, day.count - 1) * 0.25);
+			const newStepBonus = Math.min(1.0, day.newSteps * 0.5);
+			points += 1.0 + extraLogsBonus + newStepBonus;
 		}
 
-		this.notify();
-		await this.persist();
+		const rawScore = Math.min(10, (points / ALIGNMENT_TARGET_POINTS) * 10);
+		const score = Math.round(rawScore * 10) / 10;
+
+		return {
+			score,
+			activeDays: byDay.size,
+			totalLogs,
+			newSteps,
+			points: Math.round(points * 10) / 10,
+		};
 	}
 
 	public getHeatmap(weeks = 52): HeatmapCell[] {
@@ -533,48 +552,33 @@ export class ValuesStore {
 		};
 	}
 
-	public getDomainAnalytics(days = 30): DomainAnalyticsRow[] {
+	public getDomainAnalytics(days = ALIGNMENT_WINDOW_DAYS): DomainAnalyticsRow[] {
 		const cutoff = new Date();
 		cutoff.setHours(12, 0, 0, 0);
 		cutoff.setDate(cutoff.getDate() - (days - 1));
 		const cutoffKey = formatLocalDateKey(cutoff);
 
-		const recent = this.data.logs.filter((l) => l.date >= cutoffKey);
-		const total = recent.length;
-
-		const byDomain = new Map<string, { count: number; newSteps: number }>();
-		for (const log of recent) {
-			const prev = byDomain.get(log.domainId) ?? { count: 0, newSteps: 0 };
-			prev.count += 1;
-			if (log.isNewStep) prev.newSteps += 1;
-			byDomain.set(log.domainId, prev);
-		}
-
-		const prevSnapshot =
-			this.data.snapshots.length >= 2
-				? this.data.snapshots[this.data.snapshots.length - 2]
-				: this.data.snapshots[0];
-
+		const total = this.data.logs.filter((l) => l.date >= cutoffKey).length;
 		const visible = this.getDomains(false);
+
 		return visible
 			.map((domain) => {
-				const st = byDomain.get(domain.id) ?? { count: 0, newSteps: 0 };
-				const sharePct = total > 0 ? Math.round((st.count / total) * 100) : 0;
-				const gap = domain.importance - domain.alignment;
-
-				let alignmentDelta: number | null = null;
-				const prevScore = prevSnapshot?.scores[domain.id];
-				if (prevScore) {
-					alignmentDelta = domain.alignment - prevScore.alignment;
-				}
+				const stats = this.getDomainAlignment(domain.id, days);
+				const sharePct =
+					total > 0 ? Math.round((stats.totalLogs / total) * 100) : 0;
+				const gap = Math.max(
+					0,
+					Math.round((domain.importance - stats.score) * 10) / 10
+				);
 
 				return {
 					domain,
-					logCount: st.count,
-					newStepCount: st.newSteps,
+					alignment: stats.score,
+					activeDays: stats.activeDays,
+					logCount: stats.totalLogs,
+					newStepCount: stats.newSteps,
 					sharePct,
 					gap,
-					alignmentDelta,
 				};
 			})
 			.sort((a, b) => b.domain.importance - a.domain.importance || b.gap - a.gap);

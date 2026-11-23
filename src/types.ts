@@ -90,13 +90,22 @@ export interface HeatmapCell {
 	level: 0 | 1 | 2 | 3 | 4;
 }
 
+export interface DomainAlignmentStats {
+	score: number;
+	activeDays: number;
+	totalLogs: number;
+	newSteps: number;
+	points: number;
+}
+
 export interface DomainAnalyticsRow {
 	domain: ValueDomain;
+	alignment: number;
+	activeDays: number;
 	logCount: number;
 	newStepCount: number;
 	sharePct: number;
 	gap: number;
-	alignmentDelta: number | null;
 }
 
 export interface DeadGoalCheck {
