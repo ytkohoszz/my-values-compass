@@ -76,87 +76,6 @@ export function createDefaultDomains(nowIso: string): ValueDomain[] {
 	}));
 }
 
-export interface FearItemMeta {
-	id: "fusion" | "expectations" | "avoidance" | "remoteness";
-	letter: string;
-	title: string;
-	shortDesc: string;
-	actionTitle: string;
-	counterMove: string;
-}
-
-export const FEAR_ITEMS: FearItemMeta[] = [
-	{
-		id: "fusion",
-		letter: "F",
-		title: "Слияние с мыслями",
-		shortDesc: "«Не получится», «я не готов», «это глупо»",
-		actionTitle: "Отцепиться от «Радио Катастроф»",
-		counterMove:
-			"Мысль — просто набор слов, а не приказ. Поблагодари разум за комментарий и выбери крошечный шаг, который сделаешь вместе с этой мыслью.",
-	},
-	{
-		id: "expectations",
-		letter: "E",
-		title: "Завышенные ожидания",
-		shortDesc: "Планка слишком высока, страшно даже начать",
-		actionTitle: "Снизить порог входа до 5 минут",
-		counterMove:
-			"Разбей задачу до смешно простого Immediate-шага. Важно развернуть корабль к берегу прямо сейчас, а не доплыть за один вечер.",
-	},
-	{
-		id: "avoidance",
-		letter: "A",
-		title: "Избегание дискомфорта",
-		shortDesc: "Ожидание тревоги, скуки или неловкости",
-		actionTitle: "Освободить место для чувства и действовать",
-		counterMove:
-			"Уверенность приходит после действий, а не до них. Проведи 60-секундную репетицию: представь сами действия, допуская наличие дискомфорта.",
-	},
-	{
-		id: "remoteness",
-		letter: "R",
-		title: "Потеря связи с ценностью",
-		shortDesc: "Цель ощущается как сухая обязанность",
-		actionTitle: "Вернуть смысл и топливо",
-		counterMove:
-			"Спроси себя: «Ради какой ценности я это делаю?». Распакуй цель и найди действие, которое принесёт отклик уже сегодня.",
-	},
-];
-
-export interface DeepClarificationPrompt {
-	id: string;
-	title: string;
-	question: string;
-}
-
-export const DEEP_CLARIFICATION_PROMPTS: DeepClarificationPrompt[] = [
-	{
-		id: "full_approval",
-		title: "Без оглядки на одобрение",
-		question:
-			"Если бы чудом все значимые для тебя люди автоматически одобряли любые твои решения — чем бы ты занялся и каким человеком старался бы быть?",
-	},
-	{
-		id: "one_year",
-		title: "Если остался один год",
-		question:
-			"Если бы ты знал, что впереди ровно один год жизни — как бы ты проявлял себя как личность и на что тратил время?",
-	},
-	{
-		id: "eulogy",
-		title: "Речь близких",
-		question:
-			"Что бы ты хотел услышать от близких о себе и о той роли, которую ты сыграл в их жизни?",
-	},
-	{
-		id: "conflict",
-		title: "Конфликт ценностей",
-		question:
-			"Какие две твои ценности сейчас тянут в разные стороны? Какой честный баланс или приоритет разумен именно на этом этапе жизни?",
-	},
-];
-
 export function createInitialData(): ValuesCompassData {
 	const nowIso = new Date().toISOString();
 	return {
@@ -166,7 +85,6 @@ export function createInitialData(): ValuesCompassData {
 		logs: [],
 		savoring: [],
 		snapshots: [],
-		reflections: [],
 	};
 }
 

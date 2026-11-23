@@ -4,7 +4,6 @@ import {
 	DOMAIN_ICON_OPTIONS,
 	HORIZON_LIST,
 } from "../defaults";
-import { ReviewModal } from "../modals/reviewModal";
 import { GoalHorizon, ValueDomain, ValueGoal } from "../types";
 import type { ValuesCompassView } from "../view";
 
@@ -817,31 +816,6 @@ function renderGoalCard(
 				});
 			}
 		}
-	});
-
-	const actRow = details.createDiv({ cls: "vc-goal-act-row" });
-	const unpackBtn = actRow.createEl("button", {
-		cls: "vc-btn vc-chip",
-		text: "Распаковать",
-		attr: { type: "button" },
-	});
-	unpackBtn.addEventListener("click", () => {
-		new ReviewModal(view.app, store, {
-			initialTab: "unpack",
-			goal,
-		}).open();
-	});
-
-	const stuckBtn = actRow.createEl("button", {
-		cls: "vc-btn vc-chip",
-		text: "Застрял?",
-		attr: { type: "button" },
-	});
-	stuckBtn.addEventListener("click", () => {
-		new ReviewModal(view.app, store, {
-			initialTab: "fear",
-			goal,
-		}).open();
 	});
 
 	const footer = details.createDiv({ cls: "vc-goal-footer" });

@@ -61,13 +61,6 @@ export interface AlignmentSnapshot {
 	scores: Record<string, { importance: number; alignment: number }>;
 }
 
-export interface ReflectionNote {
-	promptId: string;
-	promptTitle: string;
-	text: string;
-	updatedAt: string;
-}
-
 export interface ValuesCompassData {
 	version: number;
 	domains: ValueDomain[];
@@ -75,7 +68,6 @@ export interface ValuesCompassData {
 	logs: ValueLogEntry[];
 	savoring: SavoringEntry[];
 	snapshots: AlignmentSnapshot[];
-	reflections: ReflectionNote[];
 }
 
 export interface ValuesCompassSettings {

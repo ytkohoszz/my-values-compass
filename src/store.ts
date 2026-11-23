@@ -7,7 +7,6 @@ import {
 	GoalHorizon,
 	GoalStatus,
 	HeatmapCell,
-	ReflectionNote,
 	SavoringEntry,
 	ValueDomain,
 	ValueGoal,
@@ -90,7 +89,6 @@ export class ValuesStore {
 				logs: Array.isArray(parsed.logs) ? parsed.logs : [],
 				savoring: Array.isArray(parsed.savoring) ? parsed.savoring : [],
 				snapshots: Array.isArray(parsed.snapshots) ? parsed.snapshots : [],
-				reflections: Array.isArray(parsed.reflections) ? parsed.reflections : [],
 			};
 			this.notify();
 		} catch (err) {
@@ -391,46 +389,6 @@ export class ValuesStore {
 				date: dateKey,
 				text: trimmed,
 				createdAt: new Date().toISOString(),
-			});
-		}
-
-		this.notify();
-		await this.persist();
-	}
-
-	// --- Deep Reflections (Chapter 26) ---
-
-	public getReflection(promptId: string): ReflectionNote | undefined {
-		return this.data.reflections.find((r) => r.promptId === promptId);
-	}
-
-	public async saveReflection(
-		promptId: string,
-		promptTitle: string,
-		text: string
-	): Promise<void> {
-		const trimmed = text.trim();
-		const idx = this.data.reflections.findIndex((r) => r.promptId === promptId);
-
-		if (!trimmed) {
-			if (idx !== -1) {
-				this.data.reflections.splice(idx, 1);
-				this.notify();
-				await this.persist();
-			}
-			return;
-		}
-
-		const existing = idx !== -1 ? this.data.reflections[idx] : undefined;
-		if (existing) {
-			existing.text = trimmed;
-			existing.updatedAt = new Date().toISOString();
-		} else {
-			this.data.reflections.push({
-				promptId,
-				promptTitle,
-				text: trimmed,
-				updatedAt: new Date().toISOString(),
 			});
 		}
 

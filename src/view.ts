@@ -1,7 +1,6 @@
 import { ItemView, WorkspaceLeaf, setIcon } from "obsidian";
 import { VIEW_TYPE_VALUES_COMPASS } from "./defaults";
 import type ValuesCompassPlugin from "./main";
-import { ReviewModal } from "./modals/reviewModal";
 import { renderAnalyticsTab } from "./tabs/analyticsTab";
 import { renderMapTab } from "./tabs/mapTab";
 import { CompassTabId, GoalHorizon } from "./types";
@@ -119,18 +118,6 @@ export class ValuesCompassView extends ItemView {
 				}
 			});
 		}
-
-		const reviewBtn = topbar.createEl("button", {
-			cls: "vc-btn vc-btn-icon vc-topbar-review",
-			attr: { type: "button", title: "Разбор (FEAR, распаковка, репетиция)" },
-		});
-		setIcon(reviewBtn, "life-buoy");
-		reviewBtn.addEventListener("click", () => {
-			new ReviewModal(this.app, this.plugin.store, {
-				initialTab: "fear",
-				domainId: this.uiState.selectedMapDomainId ?? undefined,
-			}).open();
-		});
 
 		// Основная прокручиваемая область
 		const scroll = root.createDiv({ cls: "vc-scroll" });

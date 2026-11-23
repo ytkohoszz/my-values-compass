@@ -1,6 +1,5 @@
 import { Plugin, WorkspaceLeaf } from "obsidian";
 import { DEFAULT_SETTINGS, VIEW_TYPE_VALUES_COMPASS } from "./defaults";
-import { ReviewModal, ReviewModalOptions } from "./modals/reviewModal";
 import { ValuesCompassSettingTab } from "./settings";
 import { ValuesStore } from "./store";
 import { CompassTabId, ValuesCompassSettings } from "./types";
@@ -30,14 +29,6 @@ export default class ValuesCompassPlugin extends Plugin {
 			name: "Открыть Карту ценностей",
 			callback: () => {
 				void this.activateView("map");
-			},
-		});
-
-		this.addCommand({
-			id: "open-values-review",
-			name: "Открыть Разбор (FEAR / репетиция)",
-			callback: () => {
-				this.openReviewModal({ initialTab: "fear" });
 			},
 		});
 
@@ -89,10 +80,6 @@ export default class ValuesCompassPlugin extends Plugin {
 		if (view instanceof ValuesCompassView) {
 			view.switchTab(tab, domainId);
 		}
-	}
-
-	public openReviewModal(options: ReviewModalOptions = {}): void {
-		new ReviewModal(this.app, this.store, options).open();
 	}
 
 	public refreshView(): void {
