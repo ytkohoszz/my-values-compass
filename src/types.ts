@@ -1,4 +1,4 @@
-export type CompassTabId = "today" | "map" | "analytics";
+export type CompassTabId = "map" | "analytics";
 
 export type GoalHorizon = "immediate" | "short" | "mid" | "long";
 

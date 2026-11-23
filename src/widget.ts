@@ -91,7 +91,7 @@ export class ValuesCompassWidget extends MarkdownRenderChild {
 		});
 		setIcon(openBtn, "arrow-up-right");
 		openBtn.addEventListener("click", () => {
-			const targetTab = this.mode === "pulse" ? "analytics" : "today";
+			const targetTab = this.mode === "pulse" ? "analytics" : "map";
 			void this.plugin.activateView(targetTab);
 		});
 

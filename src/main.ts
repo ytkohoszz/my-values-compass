@@ -1,8 +1,9 @@
 import { Plugin, WorkspaceLeaf } from "obsidian";
 import { DEFAULT_SETTINGS, VIEW_TYPE_VALUES_COMPASS } from "./defaults";
+import { ReviewModal, ReviewModalOptions } from "./modals/reviewModal";
 import { ValuesCompassSettingTab } from "./settings";
 import { ValuesStore } from "./store";
-import { ValuesCompassSettings } from "./types";
+import { CompassTabId, ValuesCompassSettings } from "./types";
 import { ValuesCompassView } from "./view";
 import { ValuesCompassWidget } from "./widget";
 
@@ -21,22 +22,22 @@ export default class ValuesCompassPlugin extends Plugin {
 		);
 
 		this.addRibbonIcon("compass", "Компас ценностей", () => {
-			void this.activateView("today");
+			void this.activateView("map");
 		});
 
 		this.addCommand({
 			id: "open-values-compass",
-			name: "Открыть Компас ценностей",
+			name: "Открыть Карту ценностей",
 			callback: () => {
-				void this.activateView("today");
+				void this.activateView("map");
 			},
 		});
 
 		this.addCommand({
-			id: "quick-log-value-action",
-			name: "Записать ценностное действие",
+			id: "open-values-review",
+			name: "Открыть Разбор (FEAR / репетиция)",
 			callback: () => {
-				void this.activateView("today", true);
+				this.openReviewModal({ initialTab: "fear" });
 			},
 		});
 
@@ -68,8 +69,8 @@ export default class ValuesCompassPlugin extends Plugin {
 	}
 
 	public async activateView(
-		tab: "today" | "map" | "analytics" = "today",
-		focusInput = false
+		tab: CompassTabId = "map",
+		domainId?: string
 	): Promise<void> {
 		const { workspace } = this.app;
 		let leaf = workspace.getLeavesOfType(VIEW_TYPE_VALUES_COMPASS)[0];
@@ -86,8 +87,12 @@ export default class ValuesCompassPlugin extends Plugin {
 
 		const view = leaf.view;
 		if (view instanceof ValuesCompassView) {
-			view.switchTab(tab, focusInput);
+			view.switchTab(tab, domainId);
 		}
+	}
+
+	public openReviewModal(options: ReviewModalOptions = {}): void {
+		new ReviewModal(this.app, this.store, options).open();
 	}
 
 	public refreshView(): void {
