@@ -10,6 +10,8 @@
 }
 
 .vc-root {
+	--vc-hit: 36px;
+
 	position: relative;
 	display: flex;
 	flex-direction: column;
@@ -19,6 +21,12 @@
 	color: var(--text-normal);
 	background: var(--background-primary);
 	box-sizing: border-box;
+}
+
+.vc-root svg.svg-icon {
+	flex-shrink: 0;
+	display: block;
+	stroke-width: 1.9px;
 }
 
 .vc-root *,
@@ -137,6 +145,7 @@
 	height: 22px;
 	padding: 0 8px;
 	border-radius: var(--pill-radius, var(--radius-l, 18px));
+	-electron-corner-smoothing: var(--corner-smoothing, 60%);
 	background: var(--background-primary);
 	box-shadow: 0 0 0 0.5px var(--trans-faint-20, var(--background-modifier-border));
 	font-size: 0.78rem;
@@ -148,12 +157,11 @@
 }
 
 .vc-hr {
-	height: 0.125rem;
+	height: 1px;
 	width: 100%;
 	margin: 4px 0;
 	border: none;
-	border-radius: var(--radius-l, 18px);
-	background: var(--hr-color, var(--trans-faint-20, var(--background-modifier-border)));
+	background: var(--trans-faint-20, var(--background-modifier-border));
 }
 
 /* ---------- Buttons (Strict Reset) ---------- */
@@ -215,12 +223,22 @@
 	height: 14px;
 }
 
+.vc-root button.vc-btn:disabled {
+	opacity: 0.35;
+	pointer-events: none;
+}
+
+.vc-root button.vc-btn:focus-visible {
+	box-shadow: var(--shadow-input-active, 0 0 0 2px var(--interactive-accent));
+}
+
 .vc-root button.vc-btn-normal {
 	height: 32px;
 	padding: 0 12px;
 	border-radius: var(--radius-s, 8px);
 	background: var(--interactive-normal);
 	color: var(--text-normal);
+	box-shadow: var(--shadow-input, 0 0 0 0.5px var(--trans-faint-25, var(--background-modifier-border)));
 	text-box-trim: trim-both;
 	text-box-edge: cap alphabetic;
 }
@@ -272,6 +290,7 @@
 
 .vc-root button.vc-btn-subtle.vc-danger-text:hover {
 	color: var(--color-red, #d85b57);
+	background: color-mix(in oklab, var(--color-red, #d85b57) 14%, transparent);
 }
 
 .vc-root button.vc-btn-icon {
@@ -306,24 +325,25 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: 6px;
-	padding: 2px 0;
+	padding: 2px;
+	margin: -2px;
 }
 
 .vc-root button.vc-chip {
-	height: 28px;
-	padding: 0 11px;
+	height: 30px;
+	padding: 0 12px;
 	border-radius: var(--pill-radius, var(--radius-l, 18px));
 	background: var(--background-primary);
 	color: var(--icon-color, var(--text-muted));
 	font-size: 0.8rem;
-	box-shadow: 0 0 0 0.5px var(--trans-faint-25, var(--background-modifier-border));
+	box-shadow: var(--shadow-input, 0 0 0 0.5px var(--trans-faint-25, var(--background-modifier-border)));
 	text-box-trim: trim-both;
 	text-box-edge: cap alphabetic;
 }
 
 .vc-root button.vc-chip:hover {
-	color: var(--text-normal);
-	background: var(--interactive-hover);
+	color: var(--color-base-100, var(--text-normal));
+	background: var(--trans-faint-05, var(--background-modifier-hover));
 }
 
 .vc-root button.vc-chip.is-active {
@@ -351,6 +371,7 @@
 	height: 22px;
 	padding: 0 8px;
 	border-radius: var(--pill-radius, var(--radius-l, 18px));
+	-electron-corner-smoothing: var(--corner-smoothing, 60%);
 	background: var(--trans-faint-05, var(--background-secondary));
 	box-shadow: 0 0 0 0.5px var(--trans-faint-20, var(--background-modifier-border));
 	font-size: 0.76rem;
@@ -395,7 +416,8 @@
 	height: 20px;
 	padding: 0 8px;
 	border-radius: var(--pill-radius, var(--radius-l, 18px));
-	background: color-mix(in oklab, var(--interactive-accent) 16%, transparent);
+	-electron-corner-smoothing: var(--corner-smoothing, 60%);
+	background: var(--color-accent-4, color-mix(in oklab, var(--interactive-accent) 16%, transparent));
 	color: var(--color-accent-1, var(--text-accent));
 	font-size: 0.72rem;
 	font-weight: var(--font-semibold, 600);
@@ -409,6 +431,7 @@
 	height: 22px;
 	padding: 0 8px;
 	border-radius: var(--pill-radius, var(--radius-l, 18px));
+	-electron-corner-smoothing: var(--corner-smoothing, 60%);
 	background: color-mix(in oklab, var(--color-green, #4aab80) 16%, transparent);
 	color: var(--color-green, #4aab80);
 	font-size: 0.74rem;
@@ -439,7 +462,7 @@
 }
 
 .vc-root input.vc-input {
-	height: 36px;
+	height: var(--vc-hit);
 }
 
 .vc-root textarea.vc-textarea {
@@ -463,6 +486,7 @@
 .vc-empty-box {
 	padding: 16px;
 	border-radius: var(--radius-sm, 10px);
+	-electron-corner-smoothing: var(--corner-smoothing, 60%);
 	background: var(--background-primary);
 	box-shadow: inset 0 0 0 0.5px var(--trans-faint-20, var(--background-modifier-border));
 }
@@ -479,7 +503,8 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 3px 0;
+	padding: 3px;
+	margin: -3px;
 }
 
 .vc-quick-form .vc-quick-input {
@@ -487,14 +512,14 @@
 }
 
 .vc-root button.vc-newstep-toggle {
-	height: 36px;
+	height: var(--vc-hit);
 	flex-shrink: 0;
 	padding: 0 12px;
 }
 
 .vc-root button.vc-quick-submit {
-	width: 36px;
-	height: 36px;
+	width: var(--vc-hit);
+	height: var(--vc-hit);
 	padding: 0;
 	flex-shrink: 0;
 	border-radius: var(--radius-sm, 10px);
@@ -583,6 +608,7 @@
 	gap: 6px;
 	padding: 8px 10px;
 	border-radius: var(--radius-s, 8px);
+	-electron-corner-smoothing: var(--corner-smoothing, 60%);
 	background: var(--trans-faint-05, var(--background-secondary));
 }
 
@@ -604,6 +630,7 @@
 	height: 20px;
 	padding: 0 7px;
 	border-radius: var(--radius-xs, 6px);
+	-electron-corner-smoothing: var(--corner-smoothing, 60%);
 	font-size: 0.72rem;
 	font-weight: var(--font-semibold, 600);
 	text-box-trim: trim-both;
@@ -863,6 +890,7 @@
 	height: 19px;
 	padding: 0 7px;
 	border-radius: var(--pill-radius, var(--radius-l, 18px));
+	-electron-corner-smoothing: var(--corner-smoothing, 60%);
 	background: var(--trans-faint-10, var(--background-secondary));
 	color: var(--icon-color, var(--text-muted));
 	font-size: 0.72rem;
@@ -913,19 +941,19 @@
 	max-height: calc(100vh - 108px);
 	display: flex;
 	flex-direction: column;
-	border-radius: var(--menu-radius, var(--radius-ml, 14px));
+	border: none;
+	border-radius: var(--menu-radius, calc(var(--radius-ml, 14px) + 2px));
 	-electron-corner-smoothing: var(--corner-smoothing, 60%);
 	background: var(
 		--modal-small-background,
-		var(--background-primary-alt, var(--background-secondary))
+		var(--modal-background, var(--background-primary-alt, var(--background-secondary)))
 	);
-	backdrop-filter: var(--blur-m, blur(12px));
-	-webkit-backdrop-filter: var(--blur-m, blur(12px));
-	border: 1px solid
-		var(--menu-border-color, var(--trans-faint-30, var(--background-modifier-border)));
+	backdrop-filter: var(--blur-l, var(--blur-m, blur(16px)));
+	-webkit-backdrop-filter: var(--blur-l, var(--blur-m, blur(16px)));
 	box-shadow:
 		var(--glass-base-l, none),
-		var(--menu-shadow, 0 10px 28px rgba(0, 0, 0, 0.24));
+		0 0 0 0.5px var(--menu-border-color, var(--trans-faint-30, var(--background-modifier-border))),
+		var(--menu-shadow, 0 18px 48px rgba(0, 0, 0, 0.35));
 }
 
 .vc-inspector-head {
@@ -1001,6 +1029,7 @@
 .vc-prompts-box {
 	padding: 10px 12px;
 	border-radius: var(--radius-s, 8px);
+	-electron-corner-smoothing: var(--corner-smoothing, 60%);
 	background: var(--trans-faint-05, var(--background-secondary));
 	display: flex;
 	flex-direction: column;
@@ -1030,6 +1059,7 @@
 	gap: 12px;
 	padding: 12px;
 	border-radius: var(--radius-sm, 10px);
+	-electron-corner-smoothing: var(--corner-smoothing, 60%);
 	background: var(--background-primary);
 	box-shadow: var(
 		--shadow-input,
@@ -1135,6 +1165,7 @@
 .vc-dead-goal-warn {
 	padding: 8px 10px;
 	border-radius: var(--radius-xs, 6px);
+	-electron-corner-smoothing: var(--corner-smoothing, 60%);
 	background: color-mix(in oklab, var(--color-orange, #e5a158) 14%, transparent);
 	color: var(--color-orange, #e5a158);
 	font-size: 0.8rem;
@@ -1394,8 +1425,8 @@
 	font-weight: var(--font-semibold, 600);
 	color: var(--table-header-color, var(--icon-color, var(--text-muted)));
 	border: none;
-	border-bottom: 2px solid
-		var(--table-header-border-color, var(--hr-color, var(--background-modifier-border)));
+	border-bottom: 1px solid
+		var(--table-header-border-color, var(--trans-faint-25, var(--background-modifier-border)));
 	white-space: nowrap;
 }
 
@@ -1406,7 +1437,7 @@
 }
 
 .vc-table tbody tr:nth-child(even) {
-	background: var(--table-row-bg, var(--trans-faint-00, transparent));
+	background: var(--table-row-bg, var(--trans-faint-05, transparent));
 }
 
 .vc-table tbody td {
@@ -1523,6 +1554,17 @@
 	}
 }
 
+@media (max-width: 640px) {
+	.vc-topbar {
+		padding: calc(var(--safe-area-inset-top, 0px) + 8px) 14px 8px;
+	}
+}
+
+body.is-mobile .vc-root,
+body.is-tablet .vc-root {
+	--vc-hit: 40px;
+}
+
 body.is-mobile .vc-scroll,
 body.is-tablet .vc-scroll {
 	padding: 6px 14px calc(32px + var(--safe-area-inset-bottom, 0px));
@@ -1530,7 +1572,7 @@ body.is-tablet .vc-scroll {
 
 body.is-mobile .vc-topbar,
 body.is-tablet .vc-topbar {
-	padding: calc(var(--safe-area-inset-top, 0px) + 10px) 52px 8px;
+	padding: calc(var(--safe-area-inset-top, 0px) + 10px) 16px 8px;
 }
 
 body.is-mobile .vc-root button.vc-seg-item,
@@ -1541,6 +1583,10 @@ body.is-tablet .vc-root button.vc-seg-item {
 
 body.is-mobile .vc-root input.vc-input,
 body.is-tablet .vc-root input.vc-input,
+body.is-mobile .vc-root input.vc-inline-add-input,
+body.is-tablet .vc-root input.vc-inline-add-input,
+body.is-mobile .vc-root input.vc-detail-input,
+body.is-tablet .vc-root input.vc-detail-input,
 body.is-mobile .vc-root button.vc-btn-cta,
 body.is-tablet .vc-root button.vc-btn-cta,
 body.is-mobile .vc-root button.vc-btn-normal,
@@ -1548,6 +1594,12 @@ body.is-tablet .vc-root button.vc-btn-normal,
 body.is-mobile .vc-root button.vc-newstep-toggle,
 body.is-tablet .vc-root button.vc-newstep-toggle {
 	height: 40px;
+}
+
+body.is-mobile .vc-root button.vc-btn-subtle,
+body.is-tablet .vc-root button.vc-btn-subtle {
+	height: 36px;
+	padding: 0 12px;
 }
 
 body.is-mobile .vc-root button.vc-quick-submit,
@@ -1559,13 +1611,42 @@ body.is-tablet .vc-root button.vc-quick-submit {
 body.is-mobile .vc-root button.vc-chip,
 body.is-tablet .vc-root button.vc-chip {
 	height: 36px;
-	padding: 0 13px;
+	padding: 0 14px;
 }
 
 body.is-mobile .vc-root button.vc-btn-icon,
 body.is-tablet .vc-root button.vc-btn-icon {
 	width: 38px;
 	height: 38px;
+}
+
+body.is-mobile .vc-root button.vc-goal-check,
+body.is-tablet .vc-root button.vc-goal-check {
+	width: 36px;
+	height: 36px;
+}
+
+body.is-mobile .vc-removable-pill,
+body.is-tablet .vc-removable-pill {
+	height: 30px;
+	padding: 0 4px 0 10px;
+}
+
+body.is-mobile .vc-root button.vc-pill-remove,
+body.is-tablet .vc-root button.vc-pill-remove {
+	width: 24px;
+	height: 24px;
+}
+
+body.is-mobile .vc-step-row,
+body.is-tablet .vc-step-row {
+	min-height: 36px;
+	gap: 10px;
+}
+
+body.is-mobile .vc-range,
+body.is-tablet .vc-range {
+	height: 28px;
 }
 
 body.is-mobile .vc-row-action,
@@ -1581,8 +1662,7 @@ body.is-mobile .vc-quick-form .vc-quick-input {
 	flex: 1 1 100%;
 }
 
-body.is-mobile .vc-inspector,
-body.is-tablet .vc-inspector {
+body.is-mobile .vc-inspector {
 	position: fixed;
 	inset: calc(var(--safe-area-inset-top, 0px) + 52px) 10px
 		calc(var(--safe-area-inset-bottom, 0px) + 10px) 10px;
@@ -1660,7 +1740,8 @@ body.is-tablet .vc-inspector {
 	flex-wrap: nowrap;
 	overflow-x: auto;
 	scrollbar-width: none;
-	padding-bottom: 2px;
+	padding: 2px;
+	margin: -2px;
 }
 
 .vc-widget-chips::-webkit-scrollbar {
@@ -1763,15 +1844,16 @@ body.is-tablet .vc-inspector {
 	height: 32px;
 	padding: 0 12px;
 	border-radius: var(--radius-s, 8px);
-	background: color-mix(in oklab, var(--color-red, #d85b57) 18%, transparent);
+	background: color-mix(in oklab, var(--color-red, #d85b57) 14%, transparent);
 	color: var(--color-red, #d85b57);
+	box-shadow: inset 0 0 0 0.5px color-mix(in oklab, var(--color-red, #d85b57) 40%, transparent);
 	font-weight: var(--font-semibold, 600);
 	text-box-trim: trim-both;
 	text-box-edge: cap alphabetic;
 }
 
 .vc-root button.vc-btn-danger:hover {
-	background: color-mix(in oklab, var(--color-red, #d85b57) 28%, transparent);
+	background: color-mix(in oklab, var(--color-red, #d85b57) 22%, transparent);
 }
 
 .vc-root button.vc-btn-danger:active {
@@ -1806,4 +1888,14 @@ body.is-tablet .vc-root button.vc-btn-danger {
 	font-size: 0.74rem;
 	font-variant-numeric: tabular-nums;
 	color: var(--text-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.vc-root button.vc-btn,
+	.vc-root button.vc-btn-icon svg,
+	.vc-root input.vc-input,
+	.vc-root textarea.vc-textarea,
+	.vc-domain-card {
+		transition: none !important;
+	}
 }
