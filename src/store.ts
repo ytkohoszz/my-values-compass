@@ -1,4 +1,4 @@
-import { App, normalizePath } from "obsidian";
+import { App, Notice, TFile, normalizePath } from "obsidian";
 import { createInitialData } from "./defaults";
 import {
 	ActionStep,
@@ -37,6 +37,8 @@ export class ValuesStore {
 	private data: ValuesCompassData;
 	private listeners: Set<StoreListener> = new Set();
 	private saveQueue: Promise<void> = Promise.resolve();
+	private lastWrittenContent: string | null = null;
+	private externalReloadTimer: number | null = null;
 
 	constructor(app: App, filePath: string) {
 		this.app = app;
@@ -44,8 +46,20 @@ export class ValuesStore {
 		this.data = createInitialData();
 	}
 
+	public getFilePath(): string {
+		return this.filePath;
+	}
+
 	public setFilePath(filePath: string): void {
 		this.filePath = normalizePath(filePath);
+		this.lastWrittenContent = null;
+	}
+
+	public dispose(): void {
+		if (this.externalReloadTimer !== null) {
+			window.clearTimeout(this.externalReloadTimer);
+			this.externalReloadTimer = null;
+		}
 	}
 
 	public subscribe(listener: StoreListener): () => void {
@@ -65,36 +79,106 @@ export class ValuesStore {
 		return this.data;
 	}
 
+	private isMarkdownPath(path: string): boolean {
+		return /\.md$/i.test(path);
+	}
+
+	private serializeData(data: ValuesCompassData): string {
+		const json = JSON.stringify(data, null, 2);
+		if (!this.isMarkdownPath(this.filePath)) {
+			return json;
+		}
+		return `---\ntype: values-compass-data\n---\n\n\`\`\`json\n${json}\n\`\`\`\n`;
+	}
+
+	private parseData(raw: string): ValuesCompassData {
+		const fenced = raw.match(/```(?:json)?\s*\r?\n([\s\S]*?)\r?\n```/i);
+		const jsonText = (fenced?.[1] ?? raw).trim();
+		const parsed = JSON.parse(jsonText) as Partial<ValuesCompassData>;
+		const base = createInitialData();
+
+		return {
+			version: parsed.version ?? 1,
+			domains:
+				Array.isArray(parsed.domains) && parsed.domains.length > 0
+					? parsed.domains
+					: base.domains,
+			goals: Array.isArray(parsed.goals) ? parsed.goals : [],
+			logs: Array.isArray(parsed.logs) ? parsed.logs : [],
+			savoring: Array.isArray(parsed.savoring) ? parsed.savoring : [],
+			snapshots: Array.isArray(parsed.snapshots) ? parsed.snapshots : [],
+		};
+	}
+
+	private async readFileContent(path: string): Promise<string | null> {
+		const abstractFile = this.app.vault.getAbstractFileByPath(path);
+		if (abstractFile instanceof TFile) {
+			return await this.app.vault.read(abstractFile);
+		}
+		if (await this.app.vault.adapter.exists(path)) {
+			return await this.app.vault.adapter.read(path);
+		}
+		return null;
+	}
+
 	public async load(): Promise<void> {
-		const adapter = this.app.vault.adapter;
 		try {
-			const exists = await adapter.exists(this.filePath);
-			if (!exists) {
-				this.data = createInitialData();
-				await this.persist();
+			const raw = await this.readFileContent(this.filePath);
+			if (raw !== null) {
+				this.data = this.parseData(raw);
+				this.lastWrittenContent = raw;
 				this.notify();
 				return;
 			}
-			const raw = await adapter.read(this.filePath);
-			const parsed = JSON.parse(raw) as Partial<ValuesCompassData>;
-			const base = createInitialData();
 
-			this.data = {
-				version: parsed.version ?? 1,
-				domains:
-					Array.isArray(parsed.domains) && parsed.domains.length > 0
-						? parsed.domains
-						: base.domains,
-				goals: Array.isArray(parsed.goals) ? parsed.goals : [],
-				logs: Array.isArray(parsed.logs) ? parsed.logs : [],
-				savoring: Array.isArray(parsed.savoring) ? parsed.savoring : [],
-				snapshots: Array.isArray(parsed.snapshots) ? parsed.snapshots : [],
-			};
+			// Одноразовая автомиграция со старого .json на .md
+			if (this.isMarkdownPath(this.filePath)) {
+				const legacyPath = this.filePath.replace(/\.md$/i, ".json");
+				const legacyRaw = await this.readFileContent(legacyPath);
+				if (legacyRaw !== null) {
+					this.data = this.parseData(legacyRaw);
+					await this.persist();
+					this.notify();
+					new Notice(
+						"Компас ценностей: данные перенесены в .md для синхронизации"
+					);
+					return;
+				}
+			}
+
+			// Если файла ещё нет (например, на iPad до прихода Sync), держим дефолты в памяти
+			this.data = createInitialData();
+			this.lastWrittenContent = null;
 			this.notify();
 		} catch (err) {
 			console.error("[Values Compass] Failed to load data:", err);
-			this.data = createInitialData();
+			new Notice(
+				"Компас ценностей: ошибка чтения данных. Проверь файл на конфликт синхронизации."
+			);
+		}
+	}
+
+	public handleExternalChange(): void {
+		if (this.externalReloadTimer !== null) {
+			window.clearTimeout(this.externalReloadTimer);
+		}
+		this.externalReloadTimer = window.setTimeout(() => {
+			this.externalReloadTimer = null;
+			void this.reloadFromExternal();
+		}, 200);
+	}
+
+	private async reloadFromExternal(): Promise<void> {
+		try {
+			await this.saveQueue;
+			const raw = await this.readFileContent(this.filePath);
+			if (raw === null || raw === this.lastWrittenContent) return;
+
+			this.data = this.parseData(raw);
+			this.lastWrittenContent = raw;
 			this.notify();
+		} catch (err) {
+			console.error("[Values Compass] Failed to reload synced data:", err);
 		}
 	}
 
@@ -106,19 +190,35 @@ export class ValuesStore {
 		let current = "";
 		for (const part of parts) {
 			current = current ? `${current}/${part}` : part;
-			const exists = await this.app.vault.adapter.exists(current);
-			if (!exists) {
-				await this.app.vault.adapter.mkdir(current);
+			const existing = this.app.vault.getAbstractFileByPath(current);
+			if (!existing && !(await this.app.vault.adapter.exists(current))) {
+				try {
+					await this.app.vault.createFolder(current);
+				} catch {
+					// Папка могла создаться параллельно при синхронизации
+				}
 			}
 		}
 	}
 
 	private persist(): Promise<void> {
-		const snapshotJson = JSON.stringify(this.data, null, 2);
+		const serialized = this.serializeData(this.data);
+		this.lastWrittenContent = serialized;
 		this.saveQueue = this.saveQueue
 			.then(async () => {
 				await this.ensureParentFolders(this.filePath);
-				await this.app.vault.adapter.write(this.filePath, snapshotJson);
+				const existing = this.app.vault.getAbstractFileByPath(this.filePath);
+				if (existing instanceof TFile) {
+					await this.app.vault.modify(existing, serialized);
+				} else if (await this.app.vault.adapter.exists(this.filePath)) {
+					await this.app.vault.adapter.write(this.filePath, serialized);
+				} else {
+					try {
+						await this.app.vault.create(this.filePath, serialized);
+					} catch {
+						await this.app.vault.adapter.write(this.filePath, serialized);
+					}
+				}
 			})
 			.catch((err) => {
 				console.error("[Values Compass] Failed to save data:", err);

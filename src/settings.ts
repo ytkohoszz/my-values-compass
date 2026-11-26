@@ -1,4 +1,5 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
+import { DEFAULT_DATA_FILE_PATH } from "./defaults";
 import type ValuesCompassPlugin from "./main";
 
 export class ValuesCompassSettingTab extends PluginSettingTab {
@@ -16,14 +17,14 @@ export class ValuesCompassSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Файл хранения данных")
 			.setDesc(
-				"Путь к JSON-файлу внутри хранилища. Синхронизируется между устройствами."
+				"Путь к Markdown-файлу (.md) внутри хранилища. Синхронизируется через Obsidian Sync между всеми устройствами."
 			)
 			.addText((text) =>
 				text
-					.setPlaceholder("_system/values-compass.json")
+					.setPlaceholder(DEFAULT_DATA_FILE_PATH)
 					.setValue(this.plugin.settings.dataFilePath)
 					.onChange(async (value) => {
-						const cleaned = value.trim() || "_system/values-compass.json";
+						const cleaned = value.trim() || DEFAULT_DATA_FILE_PATH;
 						this.plugin.settings.dataFilePath = cleaned;
 						await this.plugin.saveSettings();
 						this.plugin.store.setFilePath(cleaned);

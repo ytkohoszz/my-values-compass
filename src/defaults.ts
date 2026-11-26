@@ -7,9 +7,11 @@ import {
 } from "./types";
 
 export const VIEW_TYPE_VALUES_COMPASS = "values-compass-view";
+export const LEGACY_JSON_DATA_PATH = "_system/values-compass.json";
+export const DEFAULT_DATA_FILE_PATH = "_system/values-compass.md";
 
 export const DEFAULT_SETTINGS: ValuesCompassSettings = {
-	dataFilePath: "_system/values-compass.json",
+	dataFilePath: DEFAULT_DATA_FILE_PATH,
 	showHiddenDomains: false,
 };
 

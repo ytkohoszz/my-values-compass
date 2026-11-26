@@ -1,5 +1,10 @@
 import { Plugin, WorkspaceLeaf } from "obsidian";
-import { DEFAULT_SETTINGS, VIEW_TYPE_VALUES_COMPASS } from "./defaults";
+import {
+	DEFAULT_DATA_FILE_PATH,
+	DEFAULT_SETTINGS,
+	LEGACY_JSON_DATA_PATH,
+	VIEW_TYPE_VALUES_COMPASS,
+} from "./defaults";
 import { ValuesCompassSettingTab } from "./settings";
 import { ValuesStore } from "./store";
 import { CompassTabId, ValuesCompassSettings } from "./types";
@@ -41,18 +46,48 @@ export default class ValuesCompassPlugin extends Plugin {
 
 		this.addSettingTab(new ValuesCompassSettingTab(this.app, this));
 
+		this.registerEvent(
+			this.app.vault.on("modify", (file) => {
+				if (file.path === this.store.getFilePath()) {
+					this.store.handleExternalChange();
+				}
+			})
+		);
+
+		this.registerEvent(
+			this.app.vault.on("create", (file) => {
+				if (file.path === this.store.getFilePath()) {
+					this.store.handleExternalChange();
+				}
+			})
+		);
+
+		this.registerEvent(
+			this.app.vault.on("rename", (file, oldPath) => {
+				const targetPath = this.store.getFilePath();
+				if (file.path === targetPath || oldPath === targetPath) {
+					this.store.handleExternalChange();
+				}
+			})
+		);
+
 		this.app.workspace.onLayoutReady(async () => {
 			await this.store.load();
 		});
 	}
 
 	onunload(): void {
-		// Obsidian очистит зарегистрированные ItemView автоматически
+		this.store?.dispose();
 	}
 
 	async loadSettings(): Promise<void> {
 		const loaded = (await this.loadData()) as Partial<ValuesCompassSettings> | null;
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded);
+
+		if (this.settings.dataFilePath === LEGACY_JSON_DATA_PATH) {
+			this.settings.dataFilePath = DEFAULT_DATA_FILE_PATH;
+			await this.saveSettings();
+		}
 	}
 
 	async saveSettings(): Promise<void> {
